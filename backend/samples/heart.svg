@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="1040" viewBox="0 0 860 1040" role="img">
+  <title>Heart, four chambers</title>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <polygon points="430,190 300,145 175,220 145,350 175,470 430,500" fill="#3782c8" stroke="none"/>
+  <polygon points="430,190 430,500 700,470 720,350 690,220 560,145" fill="#c84646" stroke="none"/>
+  <polygon points="175,470 430,500 430,880 275,700 195,560" fill="#1e5096" stroke="none"/>
+  <polygon points="430,500 700,470 675,560 595,720 430,880" fill="#912323" stroke="none"/>
+  <polyline points="430,190 430,500 430,880" fill="none" stroke="#1c1c1c" stroke-width="2"/>
+  <polyline points="175,470 430,500 700,470" fill="none" stroke="#1c1c1c" stroke-width="2"/>
+</svg>

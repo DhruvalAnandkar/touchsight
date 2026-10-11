@@ -1,0 +1,45 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATA_DIR: /app/data
+      DEMO_CACHE_DIR: /app/demo_cache
+      PAGE_SIZE: ${PAGE_SIZE:-letter}
+      DPI: ${DPI:-120}
+      MIN_STROKE_MM: ${MIN_STROKE_MM:-1.5}
+      MIN_GAP_MM: ${MIN_GAP_MM:-2.5}
+      MIN_AREA_MM2: ${MIN_AREA_MM2:-40}
+      MAX_REGIONS: ${MAX_REGIONS:-8}
+      SAM_API_TOKEN: ${SAM_API_TOKEN:-}
+      SAM_MODEL: ${SAM_MODEL:-meta/sam-2}
+      SAM_API_BASE: ${SAM_API_BASE:-https://api.replicate.com/v1}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_PROXY_TARGET: http://backend:8000
+    volumes:
+      - ./frontend:/app
+      - frontend-modules:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  frontend-modules:

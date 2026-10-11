@@ -1,0 +1,63 @@
+{
+  "image_hash": "8101bd1510107a8f6f367271a437f11797b994545d103e4890d3a91577a4abf0",
+  "region_count": 6,
+  "source": "opencv",
+  "stages": [
+    {
+      "name": "rectify",
+      "status": "skipped",
+      "elapsed_ms": 47.8,
+      "message": "no page contour",
+      "provider": "skipped"
+    },
+    {
+      "name": "understand",
+      "status": "complete",
+      "elapsed_ms": 1.0,
+      "message": "sample, 6 parts",
+      "provider": "curated"
+    },
+    {
+      "name": "segment",
+      "status": "complete",
+      "elapsed_ms": 418.2,
+      "message": "6 regions via opencv",
+      "provider": "opencv"
+    },
+    {
+      "name": "simplify",
+      "status": "complete",
+      "elapsed_ms": 840.4,
+      "message": "6 outlines, 0 dropped",
+      "provider": "local"
+    },
+    {
+      "name": "texture",
+      "status": "complete",
+      "elapsed_ms": 22.5,
+      "message": "patterns assigned so neighbors differ",
+      "provider": "local"
+    },
+    {
+      "name": "braille",
+      "status": "complete",
+      "elapsed_ms": 7.7,
+      "message": "1 inline, 5 in the key",
+      "provider": "local"
+    },
+    {
+      "name": "relief",
+      "status": "complete",
+      "elapsed_ms": 90.5,
+      "message": "relief.stl",
+      "provider": "local"
+    },
+    {
+      "name": "export",
+      "status": "complete",
+      "elapsed_ms": 72.0,
+      "message": "tactile.svg",
+      "provider": "local"
+    }
+  ]
+}

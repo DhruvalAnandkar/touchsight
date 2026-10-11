@@ -1,0 +1,106 @@
+{
+  "subject": "Bar chart",
+  "summary": "This is a bar chart with four separate bars. Taller bars stand for larger amounts.",
+  "regions": [
+    {
+      "id": "r1",
+      "name": "Third bar",
+      "description": "The tallest bar, third from the left.",
+      "pattern": "dots",
+      "importance": 5,
+      "polygon": [
+        [
+          0.5522,
+          0.1674
+        ],
+        [
+          0.5522,
+          0.8607
+        ],
+        [
+          0.6766,
+          0.8607
+        ],
+        [
+          0.6766,
+          0.1674
+        ]
+      ]
+    },
+    {
+      "id": "r2",
+      "name": "First bar",
+      "description": "The bar on the far left.",
+      "pattern": "dots",
+      "importance": 4,
+      "polygon": [
+        [
+          0.0944,
+          0.2785
+        ],
+        [
+          0.0944,
+          0.8607
+        ],
+        [
+          0.2178,
+          0.8607
+        ],
+        [
+          0.2178,
+          0.2785
+        ]
+      ]
+    },
+    {
+      "id": "r3",
+      "name": "Second bar",
+      "description": "The bar second from the left.",
+      "pattern": "dots",
+      "importance": 4,
+      "polygon": [
+        [
+          0.3234,
+          0.5007
+        ],
+        [
+          0.3234,
+          0.8607
+        ],
+        [
+          0.4478,
+          0.8607
+        ],
+        [
+          0.4478,
+          0.5007
+        ]
+      ]
+    },
+    {
+      "id": "r4",
+      "name": "Fourth bar",
+      "description": "The shortest bar, on the far right.",
+      "pattern": "dots",
+      "importance": 3,
+      "polygon": [
+        [
+          0.7822,
+          0.6118
+        ],
+        [
+          0.7822,
+          0.8607
+        ],
+        [
+          0.9056,
+          0.8607
+        ],
+        [
+          0.9056,
+          0.6118
+        ]
+      ]
+    }
+  ]
+}

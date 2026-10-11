@@ -1,0 +1,150 @@
+{
+  "subject": "Four chambers of the human heart",
+  "summary": "This diagram illustrates the four internal chambers of the human heart responsible for pumping blood throughout the body. The right side manages deoxygenated blood traveling to the lungs, while the left side circulates oxygenated blood to the rest of the body.",
+  "regions": [
+    {
+      "id": "r1",
+      "name": "Right atrium",
+      "description": "Receives deoxygenated blood returning from systemic circulation via the venae cavae.",
+      "pattern": "dots",
+      "importance": 5,
+      "polygon": [
+        [
+          0.2057,
+          0.2106
+        ],
+        [
+          0.1694,
+          0.334
+        ],
+        [
+          0.2033,
+          0.4502
+        ],
+        [
+          0.4969,
+          0.4793
+        ],
+        [
+          0.4969,
+          0.1826
+        ],
+        [
+          0.3488,
+          0.14
+        ]
+      ]
+    },
+    {
+      "id": "r2",
+      "name": "Left atrium",
+      "description": "Receives freshly oxygenated blood returning from the lungs through the pulmonary veins.",
+      "pattern": "diagonal",
+      "importance": 5,
+      "polygon": [
+        [
+          0.8005,
+          0.2106
+        ],
+        [
+          0.6512,
+          0.14
+        ],
+        [
+          0.5031,
+          0.1826
+        ],
+        [
+          0.5031,
+          0.4793
+        ],
+        [
+          0.813,
+          0.4502
+        ],
+        [
+          0.8369,
+          0.3351
+        ]
+      ]
+    },
+    {
+      "id": "r3",
+      "name": "Right ventricle",
+      "description": "Pumps deoxygenated blood into the pulmonary artery toward the lungs for gas exchange.",
+      "pattern": "crosshatch",
+      "importance": 5,
+      "polygon": [
+        [
+          0.5007,
+          0.1826
+        ],
+        [
+          0.4993,
+          0.4782
+        ],
+        [
+          0.4667,
+          0.4782
+        ],
+        [
+          0.2033,
+          0.4523
+        ],
+        [
+          0.2271,
+          0.5384
+        ],
+        [
+          0.3187,
+          0.6712
+        ],
+        [
+          0.4993,
+          0.8465
+        ],
+        [
+          0.5007,
+          0.4823
+        ],
+        [
+          0.537,
+          0.4782
+        ],
+        [
+          0.5007,
+          0.4782
+        ]
+      ]
+    },
+    {
+      "id": "r4",
+      "name": "Left ventricle",
+      "description": "Pumps oxygen-rich blood out through the aorta into systemic circulation.",
+      "pattern": "horizontal",
+      "importance": 5,
+      "polygon": [
+        [
+          0.8143,
+          0.4523
+        ],
+        [
+          0.5019,
+          0.4823
+        ],
+        [
+          0.5031,
+          0.8433
+        ],
+        [
+          0.6913,
+          0.6919
+        ],
+        [
+          0.7854,
+          0.5363
+        ]
+      ]
+    }
+  ]
+}

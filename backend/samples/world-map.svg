@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img">
+  <title>World map</title>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <polygon points="90,150 190,70 320,55 400,130 360,210 300,275 235,265 190,210 120,190" fill="#328296" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="235,265 300,275 345,360 330,470 270,580 200,500 165,390 195,310" fill="#3c965a" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="520,95 650,75 735,125 710,185 640,205 575,200 500,155" fill="#be8c50" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="575,200 640,205 760,300 690,490 540,510 485,360 530,250" fill="#be6432" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="735,125 980,70 1120,130 1100,250 940,300 790,230 710,185" fill="#aaa028" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="980,390 1120,370 1170,450 1090,520 960,490 940,430" fill="#aa5046" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+</svg>

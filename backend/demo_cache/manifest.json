@@ -1,0 +1,53 @@
+{
+  "samples": [
+    {
+      "id": "heart",
+      "title": "Heart",
+      "description": "Four chambers that share walls.",
+      "file": "images/heart.png",
+      "hash": "d040339e623938d87467913f116bac22cab660b0485e2433439cedd798e498f6"
+    },
+    {
+      "id": "animal-cell",
+      "title": "Animal cell",
+      "description": "Cytoplasm, nucleus, nucleolus, and organelles.",
+      "file": "images/animal-cell.png",
+      "hash": "ad6da7b7a684fbdcb2371ab31ff4c76e390835d56970526eca5688b8b40945d2"
+    },
+    {
+      "id": "bar-chart",
+      "title": "Bar chart",
+      "description": "Four separated bars, the kind of chart a worksheet uses.",
+      "file": "images/bar-chart.png",
+      "hash": "0629e223ac5d3d4404f913bef0f51a0a3fe2a31bb278815b7dd9fc1ca4b9031b"
+    },
+    {
+      "id": "world-map",
+      "title": "World map",
+      "description": "Continents on a white ocean. Neighbors share a border.",
+      "file": "images/world-map.png",
+      "hash": "8101bd1510107a8f6f367271a437f11797b994545d103e4890d3a91577a4abf0"
+    },
+    {
+      "id": "plant-cell",
+      "title": "Plant cell",
+      "description": "A textbook cell: wall, nucleus, and organelles.",
+      "file": "images/plant-cell.png",
+      "hash": "f7961d0c630d458970e60fa2779b2cc2c08612323b10fae02f48a3e2aeda1df7"
+    },
+    {
+      "id": "neighborhood-map",
+      "title": "Neighborhood map",
+      "description": "Four districts that share borders.",
+      "file": "images/neighborhood-map.png",
+      "hash": "edfc19658243cc212ed1f67ed2dcb374b6bd8d3f1a38a57b94600e149daa56a9"
+    },
+    {
+      "id": "park",
+      "title": "Park",
+      "description": "Sky, sun, cloud, hill, and pond as separate shapes.",
+      "file": "images/park.png",
+      "hash": "f5a00d0cf1e85c015b79abd192a018dbbaca55f2266aeccfc2afc2a94d5811b4"
+    }
+  ]
+}

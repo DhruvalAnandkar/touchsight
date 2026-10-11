@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000" role="img">
+  <title>Animal cell</title>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <ellipse cx="500" cy="500" rx="380" ry="300" fill="#ebd2b4" stroke="#1c1c1c" stroke-width="4"/>
+  <circle cx="390" cy="470" r="108" fill="#9650aa" stroke="#1c1c1c" stroke-width="4"/>
+  <circle cx="420" cy="450" r="32" fill="#5f1e5a" stroke="#1c1c1c" stroke-width="4"/>
+  <ellipse cx="730" cy="580" rx="78" ry="52" transform="rotate(16 730 580)" fill="#288cd2" stroke="#1c1c1c" stroke-width="4"/>
+  <ellipse cx="310" cy="610" rx="64" ry="28" transform="rotate(-20 310 610)" fill="#be6e28" stroke="#1c1c1c" stroke-width="4"/>
+  <ellipse cx="640" cy="330" rx="74" ry="30" transform="rotate(10 640 330)" fill="#469632" stroke="#1c1c1c" stroke-width="4"/>
+</svg>

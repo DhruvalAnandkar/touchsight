@@ -1,0 +1,85 @@
+{
+  "d040339e623938d87467913f116bac22cab660b0485e2433439cedd798e498f6": {
+    "hint": "human heart, four chambers",
+    "subject": "Heart",
+    "summary": "This is a heart drawn as four chambers. Shared walls separate the upper chambers from the lower ones.",
+    "parts": [
+      {"name": "Right atrium", "description": "The upper chamber on the left side of the drawing.", "importance": 4, "bbox": {"x": 0.169, "y": 0.140, "w": 0.329, "h": 0.339}},
+      {"name": "Left atrium", "description": "The upper chamber on the right side of the drawing.", "importance": 4, "bbox": {"x": 0.503, "y": 0.140, "w": 0.335, "h": 0.339}},
+      {"name": "Right ventricle", "description": "The lower chamber on the left side of the drawing.", "importance": 5, "bbox": {"x": 0.203, "y": 0.183, "w": 0.334, "h": 0.665}},
+      {"name": "Left ventricle", "description": "The lower chamber on the right side of the drawing.", "importance": 5, "bbox": {"x": 0.502, "y": 0.452, "w": 0.314, "h": 0.392}}
+    ]
+  },
+  "ad6da7b7a684fbdcb2371ab31ff4c76e390835d56970526eca5688b8b40945d2": {
+    "hint": "animal cell organelles",
+    "subject": "Animal cell",
+    "summary": "This is an animal cell with a nucleus and a few organelles. The large pale area is the cytoplasm around them.",
+    "parts": [
+      {"name": "Golgi body", "description": "The green organelle near the top of the cell.", "importance": 3, "bbox": {"x": 0.566, "y": 0.297, "w": 0.150, "h": 0.068}},
+      {"name": "Nucleolus", "description": "The dark spot inside the nucleus.", "importance": 4, "bbox": {"x": 0.387, "y": 0.417, "w": 0.068, "h": 0.068}},
+      {"name": "Nucleus", "description": "The large round body left of center.", "importance": 5, "bbox": {"x": 0.248, "y": 0.361, "w": 0.252, "h": 0.284}},
+      {"name": "Cytoplasm", "description": "The pale area that fills the cell around the organelles.", "importance": 5, "bbox": {"x": 0.119, "y": 0.199, "w": 0.763, "h": 0.603}},
+      {"name": "Vacuole", "description": "The blue organelle on the right side of the cell.", "importance": 3, "bbox": {"x": 0.653, "y": 0.526, "w": 0.154, "h": 0.110}},
+      {"name": "Mitochondrion", "description": "The brown organelle near the lower left of the cell.", "importance": 3, "bbox": {"x": 0.252, "y": 0.579, "w": 0.117, "h": 0.063}}
+    ]
+  },
+  "0629e223ac5d3d4404f913bef0f51a0a3fe2a31bb278815b7dd9fc1ca4b9031b": {
+    "hint": "bar chart",
+    "subject": "Bar chart",
+    "summary": "This is a bar chart with four separate bars. Taller bars stand for larger amounts.",
+    "parts": [
+      {"name": "Third bar", "description": "The tallest bar, third from the left.", "importance": 5, "bbox": {"x": 0.552, "y": 0.167, "w": 0.126, "h": 0.695}},
+      {"name": "First bar", "description": "The bar on the far left.", "importance": 4, "bbox": {"x": 0.094, "y": 0.279, "w": 0.124, "h": 0.584}},
+      {"name": "Second bar", "description": "The bar second from the left.", "importance": 4, "bbox": {"x": 0.323, "y": 0.501, "w": 0.126, "h": 0.361}},
+      {"name": "Fourth bar", "description": "The shortest bar, on the far right.", "importance": 3, "bbox": {"x": 0.782, "y": 0.612, "w": 0.124, "h": 0.250}}
+    ]
+  },
+  "8101bd1510107a8f6f367271a437f11797b994545d103e4890d3a91577a4abf0": {
+    "hint": "world map of the continents",
+    "subject": "World map",
+    "summary": "This is a simple map of the continents on a white ocean. Landmasses that touch share one border.",
+    "parts": [
+      {"name": "Europe", "description": "The small landmass above Africa.", "importance": 3, "bbox": {"x": 0.394, "y": 0.108, "w": 0.178, "h": 0.173}},
+      {"name": "North America", "description": "The upper landmass on the left side of the map.", "importance": 4, "bbox": {"x": 0.074, "y": 0.081, "w": 0.236, "h": 0.298}},
+      {"name": "Asia", "description": "The wide landmass on the right of Europe.", "importance": 5, "bbox": {"x": 0.378, "y": 0.096, "w": 0.498, "h": 0.614}},
+      {"name": "Africa", "description": "The landmass directly below Europe.", "importance": 4, "bbox": {"x": 0.381, "y": 0.282, "w": 0.210, "h": 0.423}},
+      {"name": "South America", "description": "The lower landmass on the left side of the map.", "importance": 4, "bbox": {"x": 0.069, "y": 0.075, "w": 0.245, "h": 0.733}},
+      {"name": "Australia", "description": "The small landmass sitting alone at the lower right.", "importance": 3, "bbox": {"x": 0.734, "y": 0.512, "w": 0.182, "h": 0.214}}
+    ]
+  },
+  "f7961d0c630d458970e60fa2779b2cc2c08612323b10fae02f48a3e2aeda1df7": {
+    "hint": "plant cell organelles",
+    "subject": "Plant cell",
+    "summary": "This is a plant cell drawn as an outline with organelles inside. The large interior is the space inside the cell wall.",
+    "parts": [
+      {"name": "Chloroplast", "description": "The small round organelle in the upper right.", "importance": 3, "bbox": {"x": 0.619, "y": 0.263, "w": 0.097, "h": 0.097}},
+      {"name": "Small vacuole", "description": "The oval organelle on the left side of the cell.", "importance": 3, "bbox": {"x": 0.223, "y": 0.274, "w": 0.177, "h": 0.119}},
+      {"name": "Nucleus", "description": "The round organelle near the middle of the cell.", "importance": 5, "bbox": {"x": 0.372, "y": 0.361, "w": 0.257, "h": 0.257}},
+      {"name": "Cytoplasm", "description": "The large area inside the cell wall.", "importance": 5, "bbox": {"x": 0.128, "y": 0.128, "w": 0.746, "h": 0.746}},
+      {"name": "Large vacuole", "description": "The oval organelle in the lower right.", "importance": 4, "bbox": {"x": 0.609, "y": 0.566, "w": 0.206, "h": 0.114}}
+    ]
+  },
+  "edfc19658243cc212ed1f67ed2dcb374b6bd8d3f1a38a57b94600e149daa56a9": {
+    "hint": "neighborhood map with four districts",
+    "subject": "Neighborhood map",
+    "summary": "This map shows four districts that share borders. Each district is one region a finger can trace.",
+    "parts": [
+      {"name": "North west", "description": "The district in the upper left of the map.", "importance": 4, "bbox": {"x": 0.088, "y": 0.082, "w": 0.429, "h": 0.451}},
+      {"name": "North east", "description": "The district in the upper right of the map.", "importance": 4, "bbox": {"x": 0.081, "y": 0.074, "w": 0.839, "h": 0.828}},
+      {"name": "South east", "description": "The district in the lower right of the map.", "importance": 4, "bbox": {"x": 0.526, "y": 0.466, "w": 0.367, "h": 0.427}},
+      {"name": "South west", "description": "The district in the lower left of the map.", "importance": 4, "bbox": {"x": 0.099, "y": 0.468, "w": 0.460, "h": 0.425}}
+    ]
+  },
+  "f5a00d0cf1e85c015b79abd192a018dbbaca55f2266aeccfc2afc2a94d5811b4": {
+    "hint": "simple landscape scene",
+    "subject": "Park",
+    "summary": "This is a simple park scene with a sky, a sun, a cloud, a hill, and a pond. Each shape is its own region.",
+    "parts": [
+      {"name": "Cloud", "description": "The pale shape in the upper right of the sky.", "importance": 3, "bbox": {"x": 0.604, "y": 0.134, "w": 0.250, "h": 0.118}},
+      {"name": "Sun", "description": "The round shape in the upper left of the sky.", "importance": 3, "bbox": {"x": 0.128, "y": 0.131, "w": 0.120, "h": 0.148}},
+      {"name": "Sky", "description": "The wide band across the top of the picture.", "importance": 4, "bbox": {"x": 0.073, "y": 0.090, "w": 0.854, "h": 0.269}},
+      {"name": "Hill", "description": "The large shape in the middle of the picture.", "importance": 5, "bbox": {"x": 0.262, "y": 0.386, "w": 0.459, "h": 0.410}},
+      {"name": "Pond", "description": "The wide shape along the bottom of the picture.", "importance": 4, "bbox": {"x": 0.334, "y": 0.751, "w": 0.416, "h": 0.141}}
+    ]
+  }
+}
