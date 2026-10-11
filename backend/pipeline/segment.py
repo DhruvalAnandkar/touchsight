@@ -72,7 +72,8 @@ def _grabcut_regions(image_bgr: np.ndarray, parts: list[Part], limit: int) -> li
         if not np.any(speckless) and np.any(filled):
             speckless = _largest_component(filled)
         cleaned.append(_smooth_mask_edges(speckless))
-    resolved = _assign_by_importance(cleaned, parts)
+    nested = _subtract_contained_parts(cleaned, parts)
+    resolved = _assign_by_importance(nested, parts)
     return _regions_from_part_masks(resolved, parts)[:limit]
 
 
@@ -184,6 +185,43 @@ def _largest_component(mask: np.ndarray) -> np.ndarray:
         return np.where(binary > 0, 255, 0).astype(np.uint8)
     label = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
     return np.where(labels == label, 255, 0).astype(np.uint8)
+
+
+def _subtract_contained_parts(masks: list[np.ndarray], parts: Sequence[Part]) -> list[np.ndarray]:
+    """An outer box keeps only the foreground pixels no contained part claimed.
+
+    That turns a filled outer mask into a ring when a smaller box sits inside it.
+    """
+
+    if not masks:
+        return []
+    height, width = masks[0].shape[:2]
+    boxes = [_part_box(part, width, height) for part in parts]
+    result: list[np.ndarray] = []
+    for index, mask in enumerate(masks):
+        kept = mask.copy()
+        outer = boxes[index]
+        for inner_index, inner in enumerate(boxes):
+            if inner_index == index or not _box_contains(outer, inner):
+                continue
+            kept[masks[inner_index] > 0] = 0
+        result.append(kept)
+    return result
+
+
+def _part_box(part: Part, width: int, height: int) -> tuple[int, int, int, int]:
+    x1, y1, x2, y2 = part.approx_bbox.to_xyxy(width, height)
+    return _clip_xyxy(int(x1), int(y1), int(x2), int(y2), width, height)
+
+
+def _box_contains(outer: tuple[int, int, int, int], inner: tuple[int, int, int, int]) -> bool:
+    ox1, oy1, ox2, oy2 = outer
+    ix1, iy1, ix2, iy2 = inner
+    outer_area = max(0, ox2 - ox1) * max(0, oy2 - oy1)
+    inner_area = max(0, ix2 - ix1) * max(0, iy2 - iy1)
+    if outer_area <= 0 or inner_area <= 0 or inner_area >= outer_area * 0.98:
+        return False
+    return ix1 >= ox1 - 2 and iy1 >= oy1 - 2 and ix2 <= ox2 + 2 and iy2 <= oy2 + 2
 
 
 def _assign_by_importance(masks: list[np.ndarray], parts: Sequence[Part]) -> list[np.ndarray]:

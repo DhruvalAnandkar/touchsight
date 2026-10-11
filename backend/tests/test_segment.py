@@ -131,6 +131,32 @@ def _hatched_illustration() -> tuple[np.ndarray, list[Part]]:
     return image, parts
 
 
+def test_concentric_circles_stay_three_regions() -> None:
+    size = 300
+    image = np.full((size, size, 3), 255, np.uint8)
+    cv2.circle(image, (150, 150), 120, (40, 90, 40), thickness=-1)
+    cv2.circle(image, (150, 150), 80, (30, 90, 170), thickness=-1)
+    cv2.circle(image, (150, 150), 40, (40, 210, 230), thickness=-1)
+
+    def box(radius: int) -> BBox:
+        return BBox(
+            x=(150 - radius) / size,
+            y=(150 - radius) / size,
+            w=(2 * radius) / size,
+            h=(2 * radius) / size,
+        )
+
+    parts = [
+        Part(name="Outer", description="The outer ring.", importance=5, approx_bbox=box(120)),
+        Part(name="Middle", description="The middle ring.", importance=5, approx_bbox=box(80)),
+        Part(name="Inner", description="The inner circle.", importance=5, approx_bbox=box(40)),
+    ]
+    result = segment(image, parts)
+    assert result.source == "grabcut"
+    assert len(result.regions) == 3
+    assert {region.name for region in result.regions} == {"Outer", "Middle", "Inner"}
+
+
 def test_grabcut_segments_hatched_illustration_into_two_regions() -> None:
     image, parts = _hatched_illustration()
     result = segment(image, parts)
