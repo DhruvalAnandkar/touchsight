@@ -100,6 +100,8 @@ class SimplifyResult:
     key_labels: int = 0
     pdf: bytes = b""
     stl: bytes = b""
+    heightmap_png: bytes = b""
+    region_id_png: bytes = b""
     rectify_before: bytes = b""
     rectify_after: bytes = b""
     image_origin_mm: tuple[float, float] = (0.0, 0.0)

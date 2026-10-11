@@ -1,61 +1,61 @@
 {
   "image_hash": "d040339e623938d87467913f116bac22cab660b0485e2433439cedd798e498f6",
   "region_count": 4,
-  "source": "opencv",
+  "source": "grabcut",
   "stages": [
     {
       "name": "rectify",
       "status": "skipped",
-      "elapsed_ms": 56.5,
+      "elapsed_ms": 56.7,
       "message": "no page contour",
       "provider": "skipped"
     },
     {
       "name": "understand",
       "status": "complete",
-      "elapsed_ms": 1.2,
+      "elapsed_ms": 1.4,
       "message": "vision-llm · cached",
       "provider": "vision-llm"
     },
     {
       "name": "segment",
       "status": "complete",
-      "elapsed_ms": 336.7,
-      "message": "4 regions via opencv",
+      "elapsed_ms": 9701.7,
+      "message": "4 regions via grabcut",
       "provider": "opencv"
     },
     {
       "name": "simplify",
       "status": "complete",
-      "elapsed_ms": 758.4,
+      "elapsed_ms": 732.7,
       "message": "4 outlines, 0 dropped",
       "provider": "local"
     },
     {
       "name": "texture",
       "status": "complete",
-      "elapsed_ms": 13.3,
+      "elapsed_ms": 14.7,
       "message": "patterns assigned so neighbors differ",
       "provider": "local"
     },
     {
       "name": "braille",
       "status": "complete",
-      "elapsed_ms": 4.6,
+      "elapsed_ms": 3.9,
       "message": "0 inline, 4 in the key",
       "provider": "local"
     },
     {
       "name": "relief",
       "status": "complete",
-      "elapsed_ms": 100.3,
+      "elapsed_ms": 342.8,
       "message": "relief.stl",
       "provider": "local"
     },
     {
       "name": "export",
       "status": "complete",
-      "elapsed_ms": 206.5,
+      "elapsed_ms": 196.0,
       "message": "tactile.svg",
       "provider": "local"
     }

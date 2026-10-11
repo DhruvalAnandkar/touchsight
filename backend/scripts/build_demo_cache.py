@@ -159,6 +159,10 @@ def main() -> None:
             (directory / "tactile.pdf").write_bytes(result.pdf)
         if result.stl:
             (directory / "relief.stl").write_bytes(result.stl)
+        if result.heightmap_png:
+            (directory / "relief-height.png").write_bytes(result.heightmap_png)
+        if result.region_id_png:
+            (directory / "relief-regions.png").write_bytes(result.region_id_png)
         if result.rectify_before:
             (directory / "rectify-before.jpg").write_bytes(result.rectify_before)
         if result.rectify_after:

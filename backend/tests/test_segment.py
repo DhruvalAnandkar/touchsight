@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import cv2
 import numpy as np
 
 from pipeline.providers.sam2 import SamError, match_masks_to_boxes
@@ -64,11 +65,12 @@ def test_part_bbox_names_the_matching_region() -> None:
     assert named[0].importance == 5
 
 
-def test_sam_failure_falls_back_to_opencv() -> None:
+def test_sam_failure_falls_back_to_grabcut() -> None:
     part = Part(name="Anything", approx_bbox=BBox(x=0.1, y=0.1, w=0.3, h=0.3))
     result = segment(bar_chart(), [part], sam=_FailingSam())
-    assert result.source == "opencv"
-    assert len(result.regions) == 4
+    assert result.source == "grabcut"
+    assert len(result.regions) >= 1
+    assert result.regions[0].name == "Anything"
 
 
 def test_sam_masks_keep_part_names() -> None:
@@ -77,6 +79,91 @@ def test_sam_masks_keep_part_names() -> None:
     assert result.source == "sam2"
     assert result.regions[0].name == "Nucleus"
     assert result.regions[0].id == "r1"
+
+
+def _rounded_rect_mask(
+    shape: tuple[int, int], x1: int, y1: int, x2: int, y2: int, radius: int
+) -> np.ndarray:
+    mask = np.zeros(shape, np.uint8)
+    cv2.rectangle(mask, (x1 + radius, y1), (x2 - radius, y2), 255, thickness=-1)
+    cv2.rectangle(mask, (x1, y1 + radius), (x2, y2 - radius), 255, thickness=-1)
+    for center in (
+        (x1 + radius, y1 + radius),
+        (x2 - radius, y1 + radius),
+        (x1 + radius, y2 - radius),
+        (x2 - radius, y2 - radius),
+    ):
+        cv2.circle(mask, center, radius, 255, thickness=-1)
+    return mask
+
+
+def _hatched_illustration() -> tuple[np.ndarray, list[Part]]:
+    """Two filled shapes on white, each crossed by many thin dark hatch strokes."""
+
+    height, width = 480, 480
+    image = np.full((height, width, 3), 255, np.uint8)
+    disk = np.zeros((height, width), np.uint8)
+    cv2.circle(disk, (130, 240), 90, 255, thickness=-1)
+    panel = _rounded_rect_mask((height, width), 280, 130, 440, 360, 28)
+    image[disk > 0] = (50, 120, 190)
+    image[panel > 0] = (70, 160, 90)
+    strokes = np.zeros((height, width), np.uint8)
+    for offset in range(-height, width, 4):
+        cv2.line(strokes, (offset, 0), (offset + height, height), 255, 1)
+    for row in range(0, height, 5):
+        cv2.line(strokes, (0, row), (width, row), 255, 1)
+    image[np.logical_and(disk > 0, strokes > 0)] = (25, 30, 35)
+    image[np.logical_and(panel > 0, strokes > 0)] = (20, 35, 25)
+    parts = [
+        Part(
+            name="Disk",
+            description="Hatched disk",
+            importance=3,
+            approx_bbox=BBox(x=30 / width, y=140 / height, w=200 / width, h=200 / height),
+        ),
+        Part(
+            name="Panel",
+            description="Hatched panel",
+            importance=4,
+            approx_bbox=BBox(x=260 / width, y=110 / height, w=200 / width, h=270 / height),
+        ),
+    ]
+    return image, parts
+
+
+def test_concentric_circles_stay_three_regions() -> None:
+    size = 300
+    image = np.full((size, size, 3), 255, np.uint8)
+    cv2.circle(image, (150, 150), 120, (40, 90, 40), thickness=-1)
+    cv2.circle(image, (150, 150), 80, (30, 90, 170), thickness=-1)
+    cv2.circle(image, (150, 150), 40, (40, 210, 230), thickness=-1)
+
+    def box(radius: int) -> BBox:
+        return BBox(
+            x=(150 - radius) / size,
+            y=(150 - radius) / size,
+            w=(2 * radius) / size,
+            h=(2 * radius) / size,
+        )
+
+    parts = [
+        Part(name="Outer", description="The outer ring.", importance=5, approx_bbox=box(120)),
+        Part(name="Middle", description="The middle ring.", importance=5, approx_bbox=box(80)),
+        Part(name="Inner", description="The inner circle.", importance=5, approx_bbox=box(40)),
+    ]
+    result = segment(image, parts)
+    assert result.source == "grabcut"
+    assert len(result.regions) == 3
+    assert {region.name for region in result.regions} == {"Outer", "Middle", "Inner"}
+
+
+def test_grabcut_segments_hatched_illustration_into_two_regions() -> None:
+    image, parts = _hatched_illustration()
+    result = segment(image, parts)
+    assert result.source == "grabcut"
+    assert len(result.regions) == 2
+    assert {region.name for region in result.regions} == {"Disk", "Panel"}
+    assert all(not region.outline_only for region in result.regions)
 
 
 def test_mask_box_matching_is_one_to_one() -> None:

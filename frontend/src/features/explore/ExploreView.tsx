@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type JSX } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type JSX } from "react";
 import type { RegionMap } from "../../types";
+import { speak, stopSpeaking } from "../../voice/speak";
 
 type Region = NonNullable<RegionMap["regions"]>[number];
 
@@ -84,63 +85,57 @@ function byImportance(regions: readonly Region[], direction: "asc" | "desc"): Re
     .map((item) => item.region);
 }
 
-function useSpokenCaption(): { caption: string; speak: (text: string) => void; cancel: () => void } {
-  const generation = useRef(0);
-  const timer = useRef<number | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const [caption, setCaption] = useState("");
-
-  const clearTimer = useCallback(() => {
-    if (timer.current != null) {
-      window.clearTimeout(timer.current);
-      timer.current = null;
+function answerQuestion(raw: string, map: RegionMap): string {
+  const text = raw.trim().toLowerCase().replace(/[?.!]/g, "");
+  if (!text) return "Ask for a part, or say what is this.";
+  if (text.includes("what is this") || text === "summary") {
+    return map.summary?.trim() || map.subject?.trim() || "This is a diagram.";
+  }
+  if (text.includes("list the parts") || text.includes("list parts")) {
+    const names = (map.regions ?? []).map((region) => region.name.trim()).filter(Boolean);
+    return names.length > 0 ? `The parts are ${names.join(", ")}.` : "There are no named parts.";
+  }
+  let best: Region | null = null;
+  let bestScore = 0;
+  for (const region of map.regions ?? []) {
+    const score = nameScore(text, region.name.toLowerCase());
+    if (score > bestScore) {
+      best = region;
+      bestScore = score;
     }
-  }, []);
+  }
+  if (best && bestScore >= 0.45) {
+    const description = best.description.trim();
+    return description ? `${best.name}. ${description}` : best.name;
+  }
+  return "I could not match that to a part. Say list the parts.";
+}
 
-  const cancel = useCallback(() => {
-    generation.current += 1;
-    clearTimer();
-    window.speechSynthesis?.cancel();
-    setCaption("");
-  }, [clearTimer]);
+function nameScore(query: string, name: string): number {
+  if (!name) return 0;
+  if (query.includes(name) || name.includes(query)) return 1;
+  const queryWords = query.split(/\W+/).filter((word) => word.length > 2);
+  const nameWords = name.split(/\W+/).filter((word) => word.length > 2);
+  if (queryWords.length === 0 || nameWords.length === 0) return 0;
+  const hits = nameWords.filter((word) =>
+    queryWords.some((token) => token === word || token.includes(word) || word.includes(token)),
+  ).length;
+  return hits / nameWords.length;
+}
 
-  const speak = useCallback((text: string) => {
-    const spoken = text.trim();
-    const synth = window.speechSynthesis;
-    if (!spoken || !synth) return;
-    const id = ++generation.current;
-    clearTimer();
-    synth.cancel();
-    setCaption(spoken);
-    const utterance = new SpeechSynthesisUtterance(spoken);
-    utterance.lang = "en-US";
-    utteranceRef.current = utterance;
-    utterance.onend = () => {
-      if (generation.current === id) setCaption("");
-    };
-    utterance.onerror = (event) => {
-      if (generation.current !== id) return;
-      if (event.error === "interrupted" || event.error === "canceled") return;
-      setCaption("");
-    };
-    // Chrome drops a speak() that shares a turn with cancel().
-    timer.current = window.setTimeout(() => {
-      timer.current = null;
-      if (generation.current !== id) return;
-      synth.speak(utterance);
-      if (synth.paused) synth.resume();
-    }, 0);
-  }, [clearTimer]);
+type SpeechListener = {
+  lang: string;
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+};
 
-  useEffect(() => {
-    return () => {
-      generation.current += 1;
-      if (timer.current != null) window.clearTimeout(timer.current);
-      window.speechSynthesis?.cancel();
-    };
-  }, []);
-
-  return { caption, speak, cancel };
+function speechRecognizer(): (new () => SpeechListener) | null {
+  const host = window as Window & {
+    SpeechRecognition?: new () => SpeechListener;
+    webkitSpeechRecognition?: new () => SpeechListener;
+  };
+  return host.SpeechRecognition ?? host.webkitSpeechRecognition ?? null;
 }
 
 export function ExploreView(props: { imageUrl: string | null; map: RegionMap | null }): JSX.Element {
@@ -153,7 +148,17 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
   const summaryAtRef = useRef(0);
   const skipResetRef = useRef(true);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { caption, speak, cancel } = useSpokenCaption();
+  const [caption, setCaption] = useState("");
+  const [question, setQuestion] = useState("");
+  const [listening, setListening] = useState(false);
+  const canListen = speechRecognizer() != null;
+
+  function say(text: string) {
+    const spoken = text.trim();
+    if (!spoken) return;
+    setCaption(spoken);
+    speak(spoken, { priority: true });
+  }
   const regions = map?.regions ?? EMPTY_REGIONS;
   const painted = useMemo(() => byImportance(regions, "asc"), [regions]);
   const ordered = useMemo(() => byImportance(regions, "desc"), [regions]);
@@ -166,8 +171,9 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
     hoverIdRef.current = null;
     lastEmptyTapRef.current = null;
     setActiveId(null);
-    cancel();
-  }, [imageUrl, map, cancel]);
+    setCaption("");
+    stopSpeaking();
+  }, [imageUrl, map]);
 
   if (!imageUrl || !map) {
     return (
@@ -185,7 +191,7 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
     hoverIdRef.current = region.id;
     setActiveId(region.id);
     const name = region.name.trim();
-    if (name) speak(name);
+    if (name) say(name);
     if (typeof navigator.vibrate === "function") navigator.vibrate(30);
   }
 
@@ -208,7 +214,7 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
     const now = performance.now();
     if (now - summaryAtRef.current < 500) return;
     summaryAtRef.current = now;
-    speak(summary);
+    say(summary);
   }
 
   return (
@@ -277,7 +283,7 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
           if (gestureRef.current.moved) return;
           const hit = regionAt(event.currentTarget, event.clientX, event.clientY);
           const description = hit?.description.trim();
-          if (description) speak(description);
+          if (description) say(description);
         }}
         onDoubleClick={(event) => {
           const hit = regionAt(event.currentTarget, event.clientX, event.clientY);
@@ -286,13 +292,14 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             event.preventDefault();
-            cancel();
+            stopSpeaking();
+            setCaption("");
             return;
           }
           if (event.key === "Enter") {
             event.preventDefault();
             const description = active?.description.trim();
-            if (description) speak(description);
+            if (description) say(description);
             return;
           }
           const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
@@ -360,6 +367,53 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
         Slide across a region to hear its name, or use the arrow keys. Tap a region for a description. Double-tap
         empty space for the summary.
       </p>
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!map) return;
+          say(answerQuestion(question, map));
+        }}
+      >
+        <label htmlFor={`${hintId}-ask`} className="font-bold">
+          Ask about this diagram
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <input
+            id={`${hintId}-ask`}
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="Try: what is the left atrium?"
+            className="min-h-11 min-w-0 flex-1 rounded-xl bg-desk-2 px-4 text-paper placeholder:text-mist"
+          />
+          {canListen ? (
+            <button
+              type="button"
+              className="min-h-11 rounded-full bg-desk-2 px-4 font-bold text-gold"
+              onClick={() => {
+                const Ctor = speechRecognizer();
+                if (!Ctor || !map) return;
+                const heard = new Ctor();
+                heard.lang = "en-US";
+                heard.onresult = (event) => {
+                  const transcript = event.results[0]?.[0]?.transcript ?? "";
+                  setQuestion(transcript);
+                  setListening(false);
+                  say(answerQuestion(transcript, map));
+                };
+                heard.onerror = () => setListening(false);
+                setListening(true);
+                heard.start();
+              }}
+            >
+              {listening ? "Listening…" : "Ask about this diagram"}
+            </button>
+          ) : null}
+          <button type="submit" className="min-h-11 rounded-full bg-gold px-4 font-bold text-gold-deep">
+            Ask
+          </button>
+        </div>
+      </form>
       <p role="status" aria-live="polite" aria-atomic="true" className="min-h-16 rounded-2xl bg-desk-2 px-4 py-3 text-lg font-bold text-gold">
         {caption ? (
           caption

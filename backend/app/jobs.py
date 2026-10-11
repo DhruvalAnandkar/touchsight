@@ -31,6 +31,8 @@ TACTILE_SVG_NAME = "tactile.svg"
 TACTILE_PDF_NAME = "tactile.pdf"
 REGION_MAP_NAME = "region_map.json"
 RELIEF_STL_NAME = "relief.stl"
+RELIEF_HEIGHT_NAME = "relief-height.png"
+RELIEF_REGIONS_NAME = "relief-regions.png"
 RECTIFY_BEFORE_NAME = "rectify-before.jpg"
 RECTIFY_AFTER_NAME = "rectify-after.jpg"
 ARTIFACT_NAMES = (
@@ -39,6 +41,8 @@ ARTIFACT_NAMES = (
     TACTILE_PDF_NAME,
     REGION_MAP_NAME,
     RELIEF_STL_NAME,
+    RELIEF_HEIGHT_NAME,
+    RELIEF_REGIONS_NAME,
     RECTIFY_BEFORE_NAME,
     RECTIFY_AFTER_NAME,
 )
@@ -119,6 +123,10 @@ class JobStore:
             (job_dir / TACTILE_PDF_NAME).write_bytes(result.pdf)
         if result.stl:
             (job_dir / RELIEF_STL_NAME).write_bytes(result.stl)
+        if result.heightmap_png:
+            (job_dir / RELIEF_HEIGHT_NAME).write_bytes(result.heightmap_png)
+        if result.region_id_png:
+            (job_dir / RELIEF_REGIONS_NAME).write_bytes(result.region_id_png)
         if result.rectify_before:
             (job_dir / RECTIFY_BEFORE_NAME).write_bytes(result.rectify_before)
         if result.rectify_after:
@@ -143,6 +151,8 @@ class JobStore:
             result.stl,
             result.rectify_before,
             result.rectify_after,
+            result.heightmap_png,
+            result.region_id_png,
         )
         self._update(
             job_id,
@@ -177,6 +187,10 @@ class JobStore:
             artifacts["region_map"] = f"/api/artifacts/{state.id}/{REGION_MAP_NAME}"
         if (job_dir / RELIEF_STL_NAME).is_file():
             artifacts["relief_stl"] = f"/api/artifacts/{state.id}/{RELIEF_STL_NAME}"
+        if (job_dir / RELIEF_HEIGHT_NAME).is_file():
+            artifacts["relief_height"] = f"/api/artifacts/{state.id}/{RELIEF_HEIGHT_NAME}"
+        if (job_dir / RELIEF_REGIONS_NAME).is_file():
+            artifacts["relief_regions"] = f"/api/artifacts/{state.id}/{RELIEF_REGIONS_NAME}"
         if (job_dir / RECTIFY_BEFORE_NAME).is_file():
             artifacts["rectify_before"] = f"/api/artifacts/{state.id}/{RECTIFY_BEFORE_NAME}"
         if (job_dir / RECTIFY_AFTER_NAME).is_file():
@@ -336,6 +350,8 @@ class JobStore:
         stl: bytes,
         result_before: bytes = b"",
         result_after: bytes = b"",
+        heightmap: bytes = b"",
+        region_ids: bytes = b"",
     ) -> None:
         if self._skip_cached_labels(meta):
             return
@@ -351,6 +367,10 @@ class JobStore:
             (directory / RECTIFY_BEFORE_NAME).write_bytes(result_before)
         if result_after:
             (directory / RECTIFY_AFTER_NAME).write_bytes(result_after)
+        if heightmap:
+            (directory / RELIEF_HEIGHT_NAME).write_bytes(heightmap)
+        if region_ids:
+            (directory / RELIEF_REGIONS_NAME).write_bytes(region_ids)
         (directory / REGION_MAP_NAME).write_text(region_map, encoding="utf-8")
         (directory / "meta.json").write_text(meta.model_dump_json(indent=2), encoding="utf-8")
 

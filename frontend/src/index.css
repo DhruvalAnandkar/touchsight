@@ -11,19 +11,37 @@
   --color-gold-deep: #1a1608;
   --color-mist: #ddd6c8;
   --color-danger: #ffb4a8;
+  --color-mint: #c6f5a8;
+  --color-sky: #b7dcff;
 }
 
 html {
   background: var(--color-desk);
   color: var(--color-paper);
+  scroll-padding-top: 1rem;
+  scroll-padding-bottom: 12rem;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
-  font-size: 1.0625rem;
-  line-height: 1.5;
+  font-size: 1.125rem;
+  line-height: 1.55;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+[role="button"],
+[role="link"] {
+  touch-action: manipulation;
 }
 
 :focus-visible {
@@ -62,4 +80,477 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.ts-shell {
+  min-height: 100vh;
+  padding-bottom: 12rem;
+}
+
+.ts-start {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2.5rem 1.5rem;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(240, 193, 75, 0.34), transparent 26rem),
+    var(--color-desk);
+  color: var(--color-paper);
+  text-align: center;
+  cursor: pointer;
+}
+
+.ts-start h1 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(3.5rem, 12vw, 7rem);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--color-paper);
+}
+
+.ts-start h1::after {
+  content: "";
+  display: block;
+  width: 4.5rem;
+  height: 0.45rem;
+  margin: 1rem auto 0;
+  border-radius: 999px;
+  background: var(--color-gold);
+}
+
+.ts-start p {
+  margin: 0;
+  max-width: 16em;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.35;
+}
+
+.ts-start button {
+  margin-top: 0.25rem;
+  min-height: 3.25rem;
+  padding: 0.65rem 1.2rem;
+  border-radius: 999px;
+  border: 3px solid var(--color-paper);
+  background: transparent;
+  color: var(--color-paper);
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ts-landing {
+  background: var(--color-desk);
+  color: var(--color-paper);
+}
+
+.ts-landing h1,
+.ts-landing h2,
+.ts-landing h3 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.ts-landing h1 {
+  margin: 0;
+  font-size: clamp(3.25rem, 8vw, 6.25rem);
+  color: var(--color-paper);
+}
+
+.ts-landing h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--color-gold);
+}
+
+.ts-landing h3 {
+  margin: 0.35rem 0 0;
+  font-size: 1.7rem;
+  color: var(--color-ink);
+}
+
+.ts-landing p {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.ts-hero,
+.ts-who {
+  position: relative;
+  padding: clamp(2.75rem, 7vw, 5.5rem) clamp(1.25rem, 4vw, 2rem);
+}
+
+.ts-hero-grid,
+.ts-wrap {
+  width: min(72rem, 100%);
+  margin-inline: auto;
+}
+
+.ts-hero-copy,
+.ts-diagram {
+  position: relative;
+  z-index: 1;
+}
+
+.ts-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 40rem;
+}
+
+.ts-hero-copy > p {
+  max-width: 34rem;
+}
+
+.ts-glow {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  width: min(28rem, 70vw);
+  height: min(28rem, 70vw);
+  background: radial-gradient(circle, rgba(240, 193, 75, 0.42), rgba(183, 220, 255, 0) 68%);
+  pointer-events: none;
+}
+
+.ts-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.ts-cta {
+  width: 100%;
+  min-height: 4.5rem;
+  padding: 1rem 1.4rem;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+}
+
+.ts-cta-gold {
+  background: var(--color-gold);
+  color: var(--color-ink);
+  box-shadow: 0 6px 0 var(--color-paper);
+}
+
+.ts-cta-paper {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: 0 6px 0 var(--color-gold);
+}
+
+.ts-cta-line {
+  background: transparent;
+  color: var(--color-paper);
+  border-color: var(--color-paper);
+  box-shadow: 0 6px 0 var(--color-mint);
+}
+
+@media (hover: hover) {
+  .ts-cta:hover {
+    transform: translateY(-3px);
+  }
+}
+
+.ts-cta:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--color-gold-deep);
+}
+
+.ts-voice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.ts-voice-controls button {
+  min-height: 3.25rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 3px solid var(--color-mist);
+  background: transparent;
+  color: var(--color-paper);
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ts-voice-controls button[aria-pressed="true"] {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-ink);
+}
+
+.ts-speeds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ts-speeds > span {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.ts-help {
+  max-width: 38rem;
+  font-size: 1.125rem;
+}
+
+.ts-diagram {
+  margin: 0;
+}
+
+.ts-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(14px 14px 0 var(--color-gold));
+}
+
+.ts-diagram figcaption {
+  margin-top: 1.25rem;
+  max-width: 36rem;
+  font-size: 1.25rem;
+}
+
+.ts-sheet {
+  fill: var(--color-paper);
+  stroke: var(--color-ink);
+  stroke-width: 4;
+}
+
+.ts-draw {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: ts-draw-in 1.4s ease forwards;
+}
+
+.ts-texture {
+  opacity: 0;
+  animation: ts-fill-in 0.9s ease 1.7s forwards;
+}
+
+.ts-dot {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ts-pop 0.45s cubic-bezier(0.2, 1.35, 0.4, 1) forwards;
+}
+
+.ts-how {
+  background: var(--color-desk-2);
+  margin-inline: clamp(0.75rem, 3vw, 1.5rem);
+  border-radius: 2rem;
+  padding: clamp(2.75rem, 6vw, 4.5rem) clamp(1.25rem, 4vw, 2rem);
+}
+
+.ts-intro {
+  margin-top: 0.85rem;
+  max-width: 36rem;
+}
+
+.ts-steps,
+.ts-audience {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.25rem;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ts-card {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border-radius: 1.75rem;
+  padding: 1.4rem 1.35rem 1.6rem;
+}
+
+.ts-card p {
+  margin-top: 0.55rem;
+  font-size: 1.25rem;
+}
+
+.ts-step {
+  animation: ts-rise 0.7s ease both;
+}
+
+.ts-card-gold {
+  box-shadow: 8px 8px 0 var(--color-gold);
+}
+
+.ts-card-mint {
+  box-shadow: 8px 8px 0 var(--color-mint);
+}
+
+.ts-card-sky {
+  box-shadow: 8px 8px 0 var(--color-sky);
+}
+
+.ts-card .ts-num {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-top: 0.85rem;
+  border-radius: 50%;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ts-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  display: block;
+  color: var(--color-ink);
+}
+
+.ts-icon-motion {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: ts-blink 2.4s ease-in-out infinite;
+}
+
+.ts-delay-1 {
+  animation-delay: 0s;
+}
+
+.ts-delay-2 {
+  animation-delay: 0.25s;
+}
+
+.ts-delay-3 {
+  animation-delay: 0.5s;
+}
+
+.ts-caption-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  max-height: 40vh;
+  overflow: auto;
+  padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom));
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border-top: 6px solid var(--color-gold);
+  font-size: 1.35rem;
+  line-height: 1.4;
+}
+
+.ts-caption-bar p {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+@media (min-width: 60rem) {
+  .ts-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 3rem;
+    align-items: center;
+  }
+}
+
+@media (forced-colors: active) {
+  .ts-cta,
+  .ts-start button,
+  .ts-voice-controls button,
+  .ts-card,
+  .ts-caption-bar {
+    border: 3px solid CanvasText;
+  }
+}
+
+@keyframes ts-draw-in {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ts-fill-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ts-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ts-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ts-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-draw {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .ts-texture,
+  .ts-dot,
+  .ts-step,
+  .ts-icon-motion {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

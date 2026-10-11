@@ -57,6 +57,9 @@ def artifact(job_id: str, name: str, request: Request) -> FileResponse:
     elif path.suffix == ".pdf":
         media_type = "application/pdf"
         filename = "touchsight-tactile.pdf"
+    elif path.suffix == ".png":
+        media_type = "image/png"
+        filename = path.name
     elif path.suffix in {".jpg", ".jpeg"}:
         media_type = "image/jpeg"
         filename = path.name
