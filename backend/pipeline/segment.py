@@ -1,8 +1,9 @@
 """Segment an image into at most eight regions.
 
-Primary path: a hosted SAM 2 client, prompted by part boxes. If the client is
-not configured, or the request fails, OpenCV Canny edges become watershed
-barriers and each enclosed area is a region.
+Primary path: a hosted SAM 2 client, prompted by part boxes. When part boxes
+are present but SAM is unavailable, GrabCut separates each part from the white
+background. With no part boxes, OpenCV Canny edges become watershed barriers
+and each enclosed area is a region.
 """
 
 from __future__ import annotations
@@ -42,7 +43,12 @@ def segment(
                 logger.info("segment source=sam2 regions=%s", len(regions))
                 return SegmentResult(width=width, height=height, source="sam2", regions=regions[:limit])
         except (SamError, OSError, ValueError) as exc:
-            logger.warning("SAM 2 unavailable (%s); using OpenCV fallback", exc)
+            logger.warning("SAM 2 unavailable (%s); using GrabCut fallback", exc)
+
+    if parts:
+        regions = _grabcut_regions(image_bgr, list(parts), limit)
+        logger.info("segment source=grabcut regions=%s", len(regions))
+        return SegmentResult(width=width, height=height, source="grabcut", regions=regions)
 
     masks, thin = _opencv_masks(image_bgr)
     masks = _limit_regions(masks, limit)
@@ -50,6 +56,130 @@ def segment(
     _keep_named_thin_regions(thin, regions, parts, image_bgr.shape[:2], limit)
     logger.info("segment source=opencv regions=%s", len(regions))
     return SegmentResult(width=width, height=height, source="opencv", regions=regions)
+
+
+def _grabcut_regions(image_bgr: np.ndarray, parts: list[Part], limit: int) -> list[SegmentedRegion]:
+    """One GrabCut mask per part box, then importance decides contested pixels."""
+
+    height, width = image_bgr.shape[:2]
+    smooth = cv2.bilateralFilter(image_bgr, 9, 75, 75)
+    raw = [_grabcut_part_mask(image_bgr, smooth, part) for part in parts]
+    min_area = 0.003 * height * width
+    cleaned: list[np.ndarray] = []
+    for mask in raw:
+        filled = _fill_holes(mask)
+        speckless = _remove_specks(filled, min_area)
+        cleaned.append(_smooth_mask_edges(speckless))
+    resolved = _assign_by_importance(cleaned, parts)
+    return _regions_from_part_masks(resolved, parts)[:limit]
+
+
+def _grabcut_part_mask(image_bgr: np.ndarray, smooth: np.ndarray, part: Part) -> np.ndarray:
+    height, width = image_bgr.shape[:2]
+    x1, y1, x2, y2 = part.approx_bbox.to_xyxy(width, height)
+    x1, y1, x2, y2 = _clip_xyxy(int(x1), int(y1), int(x2), int(y2), width, height)
+    empty = np.zeros((height, width), np.uint8)
+    if x2 - x1 < 2 or y2 - y1 < 2:
+        return empty
+
+    gc_mask = np.full((height, width), cv2.GC_BGD, np.uint8)
+    gc_mask[y1:y2, x1:x2] = cv2.GC_PR_FGD
+    ix1, iy1, ix2, iy2 = _shrunk_core(x1, y1, x2, y2)
+    white = image_bgr.min(axis=2) >= 245
+    outside_core = np.ones((height, width), dtype=bool)
+    outside_core[iy1:iy2, ix1:ix2] = False
+    # Clearly white paper outside the inner core is definite background.
+    gc_mask[np.logical_and(white, outside_core)] = cv2.GC_BGD
+    core = np.zeros((height, width), dtype=bool)
+    core[iy1:iy2, ix1:ix2] = True
+    gc_mask[np.logical_and(core, ~white)] = cv2.GC_FGD
+
+    if not np.any((gc_mask == cv2.GC_FGD) | (gc_mask == cv2.GC_PR_FGD)):
+        return empty
+
+    bgd_model = np.zeros((1, 65), np.float64)
+    fgd_model = np.zeros((1, 65), np.float64)
+    try:
+        cv2.grabCut(
+            smooth,
+            gc_mask,
+            (x1, y1, max(1, x2 - x1), max(1, y2 - y1)),
+            bgd_model,
+            fgd_model,
+            5,
+            cv2.GC_INIT_WITH_MASK,
+        )
+    except cv2.error:
+        logger.warning("grabCut failed for part %s", part.name)
+        return empty
+    foreground = (gc_mask == cv2.GC_FGD) | (gc_mask == cv2.GC_PR_FGD)
+    return np.where(foreground, 255, 0).astype(np.uint8)
+
+
+def _clip_xyxy(
+    x1: int, y1: int, x2: int, y2: int, width: int, height: int
+) -> tuple[int, int, int, int]:
+    x1 = min(max(x1, 0), width)
+    y1 = min(max(y1, 0), height)
+    x2 = min(max(x2, 0), width)
+    y2 = min(max(y2, 0), height)
+    if x2 < x1:
+        x1, x2 = x2, x1
+    if y2 < y1:
+        y1, y2 = y2, y1
+    return x1, y1, x2, y2
+
+
+def _shrunk_core(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int, int, int]:
+    box_w = max(1, x2 - x1)
+    box_h = max(1, y2 - y1)
+    dx = max(1, int(round(box_w * 0.18)))
+    dy = max(1, int(round(box_h * 0.18)))
+    ix1 = min(x1 + dx, x2 - 1)
+    iy1 = min(y1 + dy, y2 - 1)
+    ix2 = max(ix1 + 1, x2 - dx)
+    iy2 = max(iy1 + 1, y2 - dy)
+    return ix1, iy1, ix2, iy2
+
+
+def _fill_holes(mask: np.ndarray) -> np.ndarray:
+    binary = np.where(mask > 0, 255, 0).astype(np.uint8)
+    padded = cv2.copyMakeBorder(binary, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0)
+    flood = padded.copy()
+    flood_mask = np.zeros((padded.shape[0] + 2, padded.shape[1] + 2), np.uint8)
+    cv2.floodFill(flood, flood_mask, (0, 0), 255)
+    holes = cv2.bitwise_not(flood)
+    filled = cv2.bitwise_or(padded, holes)
+    return filled[1:-1, 1:-1]
+
+
+def _remove_specks(mask: np.ndarray, min_area: float) -> np.ndarray:
+    binary = (mask > 0).astype(np.uint8)
+    count, labels, stats, _centroids = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    if count <= 1:
+        return np.where(binary > 0, 255, 0).astype(np.uint8)
+    kept = np.zeros(binary.shape, np.uint8)
+    for label in range(1, count):
+        if float(stats[label, cv2.CC_STAT_AREA]) >= min_area:
+            kept[labels == label] = 255
+    return kept
+
+
+def _smooth_mask_edges(mask: np.ndarray) -> np.ndarray:
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    opened = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    return cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel)
+
+
+def _assign_by_importance(masks: list[np.ndarray], parts: Sequence[Part]) -> list[np.ndarray]:
+    """Higher importance overwrites. Equal importance keeps the earlier part."""
+
+    height, width = masks[0].shape[:2]
+    owner = np.zeros((height, width), dtype=np.int32)
+    order = sorted(range(len(parts)), key=lambda index: (int(parts[index].importance), -index))
+    for index in order:
+        owner[masks[index] > 0] = index + 1
+    return [np.where(owner == index + 1, 255, 0).astype(np.uint8) for index in range(len(parts))]
 
 
 def _opencv_masks(image_bgr: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
