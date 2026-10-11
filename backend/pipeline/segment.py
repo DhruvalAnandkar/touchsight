@@ -69,6 +69,8 @@ def _grabcut_regions(image_bgr: np.ndarray, parts: list[Part], limit: int) -> li
     for mask in raw:
         filled = _fill_holes(mask)
         speckless = _remove_specks(filled, min_area)
+        if not np.any(speckless) and np.any(filled):
+            speckless = _largest_component(filled)
         cleaned.append(_smooth_mask_edges(speckless))
     resolved = _assign_by_importance(cleaned, parts)
     return _regions_from_part_masks(resolved, parts)[:limit]
@@ -113,6 +115,10 @@ def _grabcut_part_mask(image_bgr: np.ndarray, smooth: np.ndarray, part: Part) ->
         logger.warning("grabCut failed for part %s", part.name)
         return empty
     foreground = (gc_mask == cv2.GC_FGD) | (gc_mask == cv2.GC_PR_FGD)
+    colored = np.zeros((height, width), np.uint8)
+    colored[y1:y2, x1:x2] = np.where(white[y1:y2, x1:x2], 0, 255)
+    if int(foreground.sum()) < 0.2 * max(1, int(np.count_nonzero(colored))):
+        return colored
     return np.where(foreground, 255, 0).astype(np.uint8)
 
 
@@ -171,14 +177,35 @@ def _smooth_mask_edges(mask: np.ndarray) -> np.ndarray:
     return cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel)
 
 
+def _largest_component(mask: np.ndarray) -> np.ndarray:
+    binary = (mask > 0).astype(np.uint8)
+    count, labels, stats, _centroids = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    if count <= 1:
+        return np.where(binary > 0, 255, 0).astype(np.uint8)
+    label = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    return np.where(labels == label, 255, 0).astype(np.uint8)
+
+
 def _assign_by_importance(masks: list[np.ndarray], parts: Sequence[Part]) -> list[np.ndarray]:
-    """Higher importance overwrites. Equal importance keeps the earlier part."""
+    """Higher importance overwrites. A small part nested in a much larger one keeps its pixels."""
 
     height, width = masks[0].shape[:2]
     owner = np.zeros((height, width), dtype=np.int32)
+    areas = [int(np.count_nonzero(mask)) for mask in masks]
     order = sorted(range(len(parts)), key=lambda index: (int(parts[index].importance), -index))
     for index in order:
-        owner[masks[index] > 0] = index + 1
+        incoming = masks[index] > 0
+        if not np.any(incoming) or areas[index] == 0:
+            continue
+        protected = np.zeros((height, width), dtype=bool)
+        current = owner[incoming]
+        for other in range(len(parts)):
+            if other == index or areas[other] <= 0:
+                continue
+            if areas[index] < areas[other] * 2.5:
+                continue
+            protected[incoming] |= current == other + 1
+        owner[incoming & ~protected] = index + 1
     return [np.where(owner == index + 1, 255, 0).astype(np.uint8) for index in range(len(parts))]
 
 

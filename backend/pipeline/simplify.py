@@ -31,6 +31,13 @@ from pipeline.types import BoundarySegment, SegmentResult, SimplifiedRegion, Sim
 logger = logging.getLogger("touchsight.pipeline.simplify")
 
 
+def _named_part(region: object) -> bool:
+    """A curated or model name should survive the small-area filter. Generic leftovers should not."""
+
+    name = str(getattr(region, "name", "") or "").strip()
+    return bool(name) and not name.startswith("Region ")
+
+
 def douglas_peucker(points: np.ndarray, epsilon: float, *, closed: bool = True) -> np.ndarray:
     """Douglas–Peucker. `points` is an (N, 2) array. Closed rings stay closed."""
 
@@ -87,7 +94,8 @@ def simplify(
     kept_sources = []
     dropped = 0
     for region in segmented.regions:
-        if not region.outline_only and int((region.mask > 0).sum()) < min_area_px:
+        named = segmented.source == "grabcut" and _named_part(region)
+        if not region.outline_only and not named and int((region.mask > 0).sum()) < min_area_px:
             dropped += 1
             continue
         kept_masks.append(region.mask)
@@ -295,19 +303,20 @@ def _regions_from_labels(
         if source is None:
             source = _source_region(mask, segmented)
         outline_only = bool(getattr(source, "outline_only", False))
-        if not outline_only and int((mask > 0).sum()) < min_area_px:
+        named = segmented.source == "grabcut" and _named_part(source)
+        if not outline_only and not named and int((mask > 0).sum()) < min_area_px:
             continue
         polygon = _polygon_mm(
             mask,
             fitted.offset_px,
             fitted.dpi,
             epsilon_px,
-            0.0 if outline_only else min_area_px,
+            0.0 if outline_only or named else min_area_px,
         )
         if polygon is None:
             continue
         points, area_mm2 = polygon
-        if not outline_only and area_mm2 < min_area_mm2:
+        if not outline_only and not named and area_mm2 < min_area_mm2:
             continue
         regions.append(
             SimplifiedRegion(
