@@ -127,7 +127,14 @@ function halt(): void {
   speakToken += 1;
   queue = [];
   speaking = false;
-  synth()?.cancel();
+  const engine = synth();
+  if (engine) {
+    engine.cancel();
+    if (engine.paused) engine.resume();
+    engine.cancel();
+    window.setTimeout(() => engine.cancel(), 0);
+  }
+  notifyCaption("");
 }
 
 export function isVoiceEnabled(): boolean {

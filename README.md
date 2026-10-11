@@ -84,8 +84,9 @@ Copy `backend/.env.example` to `backend/.env`. Leave the keys empty to run on th
 | `VLM_BASE_URL` | OpenAI-compatible base URL |
 | `VLM_API_KEY` | Vision API key. Empty in tests |
 | `ANTHROPIC_API_KEY` | Alternate key, unused when `VLM_API_KEY` is set |
-| `OPENAI_API_KEY` | Alternate key, unused when `VLM_API_KEY` is set |
-| `OPENAI_BASE_URL` | Fallback base URL |
+| `OPENAI_API_KEY` | Answers questions about the current diagram. Stays on the server |
+| `OPENAI_BASE_URL` | Answer API origin. Defaults to `https://api.openai.com/v1` |
+| `OPENAI_ANSWER_MODEL` | Model for those answers. Defaults to `gpt-4o-mini` |
 | `DEPTH_API_TOKEN` | Reserved for a depth model |
 | `RELIEF_MAX_MM` | Longest side of the STL, in millimetres |
 

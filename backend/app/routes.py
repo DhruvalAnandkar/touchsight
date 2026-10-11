@@ -6,7 +6,8 @@ from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Reque
 from fastapi.responses import FileResponse, Response
 
 from app.images import decode_image
-from app.schemas import ConvertResponse, JobView, SampleView
+from app.schemas import AskRequest, AskResponse, ConvertResponse, JobView, SampleView
+from pipeline.ask import complete_answer
 
 router = APIRouter()
 
@@ -14,6 +15,28 @@ router = APIRouter()
 @router.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@router.post("/api/ask", response_model=AskResponse)
+def ask(body: AskRequest, request: Request) -> AskResponse:
+    question = " ".join(body.question.split())
+    if not question:
+        raise HTTPException(status_code=400, detail="Ask a question about this diagram.")
+    parts = [(" ".join(part.name.split()), " ".join(part.description.split())) for part in body.parts]
+    parts = [(name, description) for name, description in parts if name]
+    key, base, model = request.app.state.settings.diagram_model()
+    answer = complete_answer(
+        question,
+        body.subject,
+        body.summary,
+        parts,
+        api_key=key,
+        base_url=base,
+        model=model,
+    )
+    if not answer:
+        return AskResponse(answer="", source="unavailable")
+    return AskResponse(answer=answer, source="model")
 
 
 @router.post("/api/convert", response_model=ConvertResponse)

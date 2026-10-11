@@ -128,7 +128,7 @@ function onClick(event: MouseEvent): void {
 export function installVoiceGuide(): void {
   if (installed || typeof window === "undefined") return;
   installed = true;
-  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keydown", onKeyDown, true);
   window.addEventListener("pointerdown", onPointerDown, true);
   window.addEventListener("pointerover", onPointerOver, true);
   window.addEventListener("focusin", onFocusIn, true);
