@@ -1,8 +1,8 @@
 """Name the picture.
 
 A vision model is used when VLM_PROVIDER and a key are set. VLM_MODEL may be
-one model or a comma-separated preference list. HTTP 429 or a quota error
-tries the next model immediately. The reply has to be this JSON, and a bad
+one model or a comma-separated preference list. HTTP 429, a quota error,
+HTTP 500, 502, 503, 504, and timeouts try the next model immediately. The reply has to be this JSON, and a bad
 reply is tried once on that same model:
 
     {"subject", "summary" (two sentences), "parts": [{name, description, importance, bbox}]}
@@ -311,7 +311,7 @@ def _complete(vlm: VlmConfig, prompt: str, png: bytes, model: str) -> str:
 
 
 def _call_models(image_bgr: np.ndarray, vlm: VlmConfig, hint: str) -> tuple[Understanding, str]:
-    """Try each model. HTTP 429 and quota errors move on immediately; no wait between models."""
+    """Try each model. Quota errors, 500, 502, 503, 504, and timeouts move on immediately."""
 
     models = _model_list(vlm)
     last_error: Exception | None = None
@@ -411,8 +411,9 @@ def _openai_settings(vlm: VlmConfig) -> tuple[str, str, str]:
 def _openai_complete(vlm: VlmConfig, prompt: str, encoded: str, model: str) -> str:
     """OpenAI-compatible chat call.
 
-    HTTP 429 and quota errors are raised immediately so the next model can run.
-    HTTP 503 waits 10 seconds and is tried once more on the same model.
+    HTTP 429, quota errors, HTTP 500, 502, 503, 504, and timeouts are raised
+    immediately so the next model can run. There is no wait and no retry on
+    the same model for those failures.
     """
 
     base, key, fallback = _openai_settings(vlm)
@@ -440,20 +441,13 @@ def _openai_complete(vlm: VlmConfig, prompt: str, encoded: str, model: str) -> s
                 headers={"authorization": f"Bearer {key}"},
             ) as client:
                 response = client.post("chat/completions", json=payload)
+        except httpx.TimeoutException:
+            raise
         except httpx.TransportError as exc:
             last_error = exc
             continue
-        if is_quota_response(response.status_code, response.text):
+        if is_quota_response(response.status_code, response.text) or response.status_code in {500, 502, 503, 504}:
             response.raise_for_status()
-        if response.status_code == 503 and attempt == 0:
-            logger.warning("vision model returned HTTP 503; waiting 10 seconds")
-            time.sleep(10)
-            last_error = httpx.HTTPStatusError(
-                f"HTTP {response.status_code}",
-                request=response.request,
-                response=response,
-            )
-            continue
         if response.status_code >= 500 and attempt == 0:
             last_error = httpx.HTTPStatusError(
                 f"HTTP {response.status_code}",

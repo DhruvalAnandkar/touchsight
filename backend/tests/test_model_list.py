@@ -1,4 +1,4 @@
-"""Comma-separated vision models fail over on HTTP 429 without waiting."""
+"""Comma-separated vision models fail over on HTTP 429 and 503 without waiting."""
 
 from __future__ import annotations
 
@@ -72,6 +72,37 @@ def test_429_switches_to_the_next_model(monkeypatch: object) -> None:
     result = understand(
         image,
         "hash-model-list",
+        VlmConfig(
+            provider="openai",
+            model=_MODELS,
+            api_key="test",
+            base_url="https://example.test/v1",
+        ),
+    )
+
+    assert slept == []
+    assert attempted == ["gemini-3.7-flash", "gemini-3.6-flash"]
+    assert result.source == "vlm"
+    assert result.model == "gemini-3.6-flash"
+    assert result.parts[0].name == "Left atrium"
+
+
+def test_503_switches_to_the_next_model(monkeypatch: object) -> None:
+    attempted: list[str] = []
+    content = json.dumps(_VALID)
+
+    def respond(payload: dict[str, object]) -> httpx.Response:
+        model_name = str(payload["model"])
+        attempted.append(model_name)
+        if model_name == "gemini-3.7-flash":
+            return _response(503, {"error": {"message": "unavailable"}})
+        return _response(200, {"choices": [{"message": {"content": content}}]})
+
+    slept = _install_client(monkeypatch, respond)
+    image = np.zeros((16, 16, 3), dtype=np.uint8)
+    result = understand(
+        image,
+        "hash-model-503",
         VlmConfig(
             provider="openai",
             model=_MODELS,
