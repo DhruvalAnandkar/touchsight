@@ -17,7 +17,7 @@ from pipeline.page import TactileConfig, fit_to_page, px_to_mm
 from pipeline.pdf import try_svg_to_pdf
 from pipeline.providers.sam2 import Sam2Client
 from pipeline.rectify import correct_exif, rectify
-from pipeline.relief import relief_stl
+from pipeline.relief import relief_package
 from pipeline.segment import segment
 from pipeline.sheet import render_sheet
 from pipeline.simplify import simplify
@@ -157,7 +157,11 @@ def run_outline(
     _emit(on_progress, StageUpdate("relief", "running"))
     started = time.perf_counter()
     try:
-        simplified.stl = relief_stl([region.mask for region in segmented.regions if region.mask is not None])
+        masked = [region for region in segmented.regions if region.mask is not None]
+        package = relief_package([region.mask for region in masked], [region.name for region in masked])
+        simplified.stl = package.stl
+        simplified.heightmap_png = package.heightmap_png
+        simplified.region_id_png = package.region_id_png
     except Exception:
         simplified.stl = b""
     if simplified.stl:

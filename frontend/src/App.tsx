@@ -5,7 +5,11 @@ import { ExploreView } from "./features/explore/ExploreView";
 import { PipelineView } from "./features/pipeline/PipelineView";
 import { ReliefView } from "./features/relief/ReliefView";
 import { PageCapture } from "./features/upload/PageCapture";
+import { LandingPage } from "./pages/Landing";
 import type { Job, RegionMap, Sample } from "./types";
+import { speak } from "./voice/speak";
+import { StartGate } from "./voice/StartGate";
+import { VoiceGuideToggle } from "./voice/VoiceGuideToggle";
 
 const TABS = ["Tactile", "Understanding", "Explore", "Relief"] as const;
 type Tab = (typeof TABS)[number];
@@ -74,6 +78,8 @@ export default function App() {
   const pdfUrl = job?.status === "complete" ? job.artifacts.tactile_pdf : undefined;
   const mapUrl = job?.status === "complete" ? job.artifacts.region_map : undefined;
   const stlUrl = job?.status === "complete" ? job.artifacts.relief_stl ?? null : null;
+  const heightmapUrl = job?.status === "complete" ? job.artifacts.relief_height ?? null : null;
+  const regionIdUrl = job?.status === "complete" ? job.artifacts.relief_regions ?? null : null;
 
   useEffect(() => {
     if (!svgUrl) {
@@ -113,33 +119,36 @@ export default function App() {
     };
   }, [mapUrl]);
 
+  useEffect(() => {
+    if (job?.status !== "complete" || !regionMap) return;
+    const subject = regionMap.subject?.trim() || "Diagram";
+    const count = regionMap.regions?.length ?? job.region_count ?? 0;
+    speak(
+      `${subject}. ${count} parts. Open Explore to feel your way around, or 3D to hold it in your hands.`,
+      { priority: true },
+    );
+  }, [job?.id, job?.status, job?.region_count, regionMap]);
+
   return (
-    <>
+    <StartGate>
       <a
         href="#converter"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:bg-gold focus:px-4 focus:py-2 focus:text-gold-deep"
       >
         Skip to the converter
       </a>
-      <header className="mx-auto max-w-6xl px-6 pt-10">
-        <p className="text-sm font-bold tracking-[0.18em] text-gold uppercase">TouchSight</p>
-        <h1 className="mt-3 max-w-3xl font-serif text-4xl leading-tight text-paper sm:text-5xl">
-          Turn any picture into a graphic a student can read by touch.
-        </h1>
-        <p className="mt-3 max-w-2xl text-lg font-bold text-paper">
-          So a blind student can study the same figure as the rest of the class.
-        </p>
-        <p className="mt-4 max-w-2xl text-lg text-mist">
-          Drop in a textbook diagram, chart, map, or photo. This step finds the regions and draws a
-          raised-line outline sized for a Letter sheet.
-        </p>
-      </header>
+      <LandingPage
+        onTry={() => document.getElementById("converter")?.scrollIntoView({ behavior: "smooth" })}
+        onPhoto={() => inputRef.current?.click()}
+        onHow={() => document.getElementById("ts-how-title")?.scrollIntoView({ behavior: "smooth" })}
+      />
 
       <main id="converter" className="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-[minmax(0,22rem)_1fr]">
         <section aria-labelledby="upload-heading" className="flex w-full min-w-0 flex-col gap-6">
           <h2 id="upload-heading" className="font-serif text-2xl">
             Start with an image
           </h2>
+          <VoiceGuideToggle />
           <PageCapture
             inputId={inputId}
             inputRef={inputRef}
@@ -281,13 +290,22 @@ export default function App() {
           ) : null}
           {tab === "Relief" ? (
             <div className="mt-4" role="tabpanel">
-              <ReliefView stlUrl={stlUrl} />
+              <ReliefView
+                stlUrl={stlUrl}
+                heightmapUrl={heightmapUrl}
+                regionIdUrl={regionIdUrl}
+                textureUrl={previewUrl}
+                regions={(regionMap?.regions ?? []).map((region) => ({
+                  name: region.name,
+                  description: region.description,
+                }))}
+              />
             </div>
           ) : null}
 
         </section>
       </main>
-    </>
+    </StartGate>
   );
 }
 
