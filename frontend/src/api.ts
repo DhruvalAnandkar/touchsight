@@ -1,4 +1,5 @@
-import type { Job, Sample } from "./types";
+import { answerQuestion } from "./features/explore/answers";
+import type { Job, RegionMap, Sample } from "./types";
 
 async function errorMessage(response: Response): Promise<string> {
   try {
@@ -8,6 +9,34 @@ async function errorMessage(response: Response): Promise<string> {
     /* response was not JSON */
   }
   return "The server could not read that image.";
+}
+
+export async function askDiagram(question: string, map: RegionMap): Promise<string> {
+  const local = answerQuestion(question, map);
+  const parts = (map.regions ?? [])
+    .map((region) => ({ name: region.name, description: region.description }))
+    .filter((region) => region.name.trim())
+    .slice(0, 12);
+  try {
+    const response = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: question.slice(0, 400),
+        subject: map.subject ?? "",
+        summary: map.summary ?? "",
+        parts,
+      }),
+    });
+    if (!response.ok) return local;
+    const body = (await response.json()) as { answer?: string; source?: string };
+    if (body.source === "model" && typeof body.answer === "string" && body.answer.trim()) {
+      return body.answer.trim();
+    }
+  } catch {
+    /* the local answer still speaks */
+  }
+  return local;
 }
 
 export async function fetchSamples(): Promise<Sample[]> {

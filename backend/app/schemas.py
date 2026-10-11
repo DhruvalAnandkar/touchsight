@@ -54,3 +54,20 @@ class SampleView(BaseModel):
     description: str
     hash: str
     image_url: str
+
+
+class AskPart(BaseModel):
+    name: str = Field(default="", max_length=80)
+    description: str = Field(default="", max_length=400)
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=400)
+    subject: str = Field(default="", max_length=200)
+    summary: str = Field(default="", max_length=800)
+    parts: list[AskPart] = Field(default_factory=list, max_length=12)
+
+
+class AskResponse(BaseModel):
+    answer: str = ""
+    source: str

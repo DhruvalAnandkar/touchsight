@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type JSX } from "react";
 import type { RegionMap } from "../../types";
+import { askDiagram } from "../../api";
 import { speak, stopSpeaking } from "../../voice/speak";
 
 type Region = NonNullable<RegionMap["regions"]>[number];
@@ -85,49 +86,13 @@ function byImportance(regions: readonly Region[], direction: "asc" | "desc"): Re
     .map((item) => item.region);
 }
 
-function answerQuestion(raw: string, map: RegionMap): string {
-  const text = raw.trim().toLowerCase().replace(/[?.!]/g, "");
-  if (!text) return "Ask for a part, or say what is this.";
-  if (text.includes("what is this") || text === "summary") {
-    return map.summary?.trim() || map.subject?.trim() || "This is a diagram.";
-  }
-  if (text.includes("list the parts") || text.includes("list parts")) {
-    const names = (map.regions ?? []).map((region) => region.name.trim()).filter(Boolean);
-    return names.length > 0 ? `The parts are ${names.join(", ")}.` : "There are no named parts.";
-  }
-  let best: Region | null = null;
-  let bestScore = 0;
-  for (const region of map.regions ?? []) {
-    const score = nameScore(text, region.name.toLowerCase());
-    if (score > bestScore) {
-      best = region;
-      bestScore = score;
-    }
-  }
-  if (best && bestScore >= 0.45) {
-    const description = best.description.trim();
-    return description ? `${best.name}. ${description}` : best.name;
-  }
-  return "I could not match that to a part. Say list the parts.";
-}
-
-function nameScore(query: string, name: string): number {
-  if (!name) return 0;
-  if (query.includes(name) || name.includes(query)) return 1;
-  const queryWords = query.split(/\W+/).filter((word) => word.length > 2);
-  const nameWords = name.split(/\W+/).filter((word) => word.length > 2);
-  if (queryWords.length === 0 || nameWords.length === 0) return 0;
-  const hits = nameWords.filter((word) =>
-    queryWords.some((token) => token === word || token.includes(word) || word.includes(token)),
-  ).length;
-  return hits / nameWords.length;
-}
-
 type SpeechListener = {
   lang: string;
   onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
   onerror: (() => void) | null;
+  onend: (() => void) | null;
   start: () => void;
+  abort: () => void;
 };
 
 function speechRecognizer(): (new () => SpeechListener) | null {
@@ -151,13 +116,37 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
   const [caption, setCaption] = useState("");
   const [question, setQuestion] = useState("");
   const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<SpeechListener | null>(null);
+  const askTokenRef = useRef(0);
   const canListen = speechRecognizer() != null;
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      askTokenRef.current += 1;
+      stopSpeaking();
+      setCaption("");
+      recognitionRef.current?.abort();
+      recognitionRef.current = null;
+      setListening(false);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
 
   function say(text: string) {
     const spoken = text.trim();
     if (!spoken) return;
     setCaption(spoken);
     speak(spoken, { priority: true });
+  }
+
+  async function askAbout(text: string) {
+    if (!map) return;
+    const token = ++askTokenRef.current;
+    const spoken = (await askDiagram(text, map)).trim();
+    if (token !== askTokenRef.current || !spoken) return;
+    say(spoken);
   }
   const regions = map?.regions ?? EMPTY_REGIONS;
   const painted = useMemo(() => byImportance(regions, "asc"), [regions]);
@@ -372,7 +361,7 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
         onSubmit={(event) => {
           event.preventDefault();
           if (!map) return;
-          say(answerQuestion(question, map));
+          void askAbout(question);
         }}
       >
         <label htmlFor={`${hintId}-ask`} className="font-bold">
@@ -383,7 +372,7 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
             id={`${hintId}-ask`}
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Try: what is the left atrium?"
+            placeholder="Try: why do we have a heart?"
             className="min-h-11 min-w-0 flex-1 rounded-xl bg-desk-2 px-4 text-paper placeholder:text-mist"
           />
           {canListen ? (
@@ -393,15 +382,18 @@ export function ExploreView(props: { imageUrl: string | null; map: RegionMap | n
               onClick={() => {
                 const Ctor = speechRecognizer();
                 if (!Ctor || !map) return;
+                recognitionRef.current?.abort();
                 const heard = new Ctor();
+                recognitionRef.current = heard;
                 heard.lang = "en-US";
                 heard.onresult = (event) => {
                   const transcript = event.results[0]?.[0]?.transcript ?? "";
                   setQuestion(transcript);
                   setListening(false);
-                  say(answerQuestion(transcript, map));
+                  void askAbout(transcript);
                 };
                 heard.onerror = () => setListening(false);
+                heard.onend = () => setListening(false);
                 setListening(true);
                 heard.start();
               }}

@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
+    openai_answer_model: str = "gpt-4o-mini"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     def vlm(self):
@@ -75,6 +76,34 @@ class Settings(BaseSettings):
             base_url=base,
             cache_dir=self.data_dir / "vlm",
         )
+
+    def diagram_model(self) -> tuple[str, str, str]:
+        """Key, base URL, and model for spoken diagram questions.
+
+        Tests never use the vision key from the environment. A test that wants
+        the HTTP path sets openai_api_key on the Settings object.
+        """
+
+        if os.environ.get("PYTEST_CURRENT_TEST"):
+            key = self.openai_api_key.strip()
+            if not key:
+                return "", "", ""
+            base = self.openai_base_url.strip() or "https://api.openai.com/v1"
+            model = self.openai_answer_model.strip() or "gpt-4o-mini"
+            return key, base, model
+
+        key = self.openai_api_key.strip()
+        if key:
+            base = self.openai_base_url.strip() or "https://api.openai.com/v1"
+            model = self.openai_answer_model.strip() or "gpt-4o-mini"
+            return key, base, model
+
+        vision_key = self.vlm_api_key.strip()
+        vision_base = self.vlm_base_url.strip()
+        vision_model = next((item.strip() for item in self.vlm_model.split(",") if item.strip()), "")
+        if vision_key and vision_base and vision_model:
+            return vision_key, vision_base, vision_model
+        return "", "", ""
 
     def tactile(self) -> TactileConfig:
         page = self.page_size.lower()
