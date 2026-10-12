@@ -46,6 +46,13 @@ Blind and low-vision students get paper they can feel or a 3D print they can hol
 
 Python 3.11, FastAPI, OpenCV, Shapely, React 19, Vite, Tailwind, and three.js. Vision labels use Gemini through an OpenAI-compatible endpoint when a key is set. Samples still run with no key.
 
+## Live demo
+
+- Web app: `https://<your-project>.vercel.app`
+- API: `https://touchsight-api.onrender.com`
+
+The free backend sleeps when idle; the first request can take about a minute.
+
 ## Run it locally
 
 From the repository root, in two terminals:
@@ -89,6 +96,8 @@ Copy `backend/.env.example` to `backend/.env`. Leave the keys empty to run on th
 | `OPENAI_ANSWER_MODEL` | Model for those answers. Defaults to `gpt-4o-mini` |
 | `DEPTH_API_TOKEN` | Reserved for a depth model |
 | `RELIEF_MAX_MM` | Longest side of the STL, in millimetres |
+| `CORS_ORIGINS` | Comma-separated browser origins. Defaults to `http://localhost:5173` |
+| `PORT` | API listen port. Render sets this. Defaults to `8000` |
 
 ## Accessibility notes
 
