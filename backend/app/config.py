@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
     openai_answer_model: str = "gpt-4o-mini"
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    cors_origins: str = "http://localhost:5173"
 
     def vlm(self):
         from pipeline.understand import VlmConfig
